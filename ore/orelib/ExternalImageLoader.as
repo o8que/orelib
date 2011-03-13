@@ -1,38 +1,48 @@
 package ore.orelib {
 	import flash.display.BitmapData;
+	import flash.display.DisplayObject;
 	import flash.display.Loader;
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.net.URLRequest;
 	import flash.system.LoaderContext;
 	
+	[Event(name="complete", type="flash.events.Event")]
 	public class ExternalImageLoader extends EventDispatcher {
-		private var _content:BitmapData;
-		private var _temp1:Loader;
-		private var _temp2:Loader;
+		private var _usesHack:Boolean;
+		private var _bitmapData:BitmapData;
 		
 		public function ExternalImageLoader() {
-			_content = null; _temp1 = new Loader(); _temp2 = new Loader();
+			_usesHack = true;
+			_bitmapData = new BitmapData(1, 1, false, 0x000000);
 		}
 		
-		public function load(url:String):void {
-			_temp1.contentLoaderInfo.addEventListener(Event.INIT, temp1Loaded);
-			_temp1.load(new URLRequest(url), new LoaderContext(true));
+		public function load(url:String, usesHack:Boolean = true):void {
+			var loader:Loader = new Loader();
+			loader.contentLoaderInfo.addEventListener(Event.INIT, onLoaded);
+			loader.load(new URLRequest(url), new LoaderContext(!(_usesHack = usesHack)));
 		}
 		
-		private function temp1Loaded(event:Event):void {
-			event.target.removeEventListener(Event.INIT, temp1Loaded);
-			_content = new BitmapData(int(_temp1.width), int(_temp1.height), true, 0x00ffffff);
-			_temp2.contentLoaderInfo.addEventListener(Event.INIT, temp2Loaded);
-			_temp2.loadBytes(_temp1.contentLoaderInfo.bytes);
+		private function onLoaded(event:Event):void {
+			event.target.removeEventListener(Event.INIT, onLoaded);
+			if (_usesHack) {
+				var loader:Loader = new Loader();
+				loader.contentLoaderInfo.addEventListener(Event.INIT, onHacked);
+				loader.loadBytes(event.target.bytes);
+			}else {
+				_bitmapData = event.target.loader.content.bitmapData;
+				dispatchEvent(new Event(Event.COMPLETE));
+			}
 		}
 		
-		private function temp2Loaded(event:Event):void {
-			event.target.removeEventListener(Event.INIT, temp2Loaded);
-			_content.draw(_temp2); _temp1.unload(); _temp2.unload();
+		private function onHacked(event:Event):void {
+			event.target.removeEventListener(Event.INIT, onHacked);
+			var content:DisplayObject = event.target.loader.content;
+			_bitmapData = new BitmapData(content.width, content.height, true, 0x00FFFFFF);
+			_bitmapData.draw(content);
 			dispatchEvent(new Event(Event.COMPLETE));
 		}
 		
-		public function get content():BitmapData { return _content; }
+		public function get bitmapData():BitmapData { return _bitmapData; }
 	}
 }
