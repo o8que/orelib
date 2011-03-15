@@ -5,16 +5,18 @@ package ore.orelib {
 	import flash.net.URLRequest;
 	import flash.text.Font;
 	
-	[Event(name="complete", type="flash.events.Event")]
+	/** フォントの登録が完了した際に送出されます。 */
+	[Event(name = "complete", type = "flash.events.Event")]
+	/** ローカルテスト時に net.wonderfl.utils.FontLoader クラスの代わりに使用します。 */
 	public class FontLoader extends EventDispatcher {
 		private var _fontName:String;
 		
-		public function FontLoader() {
-			_fontName = "";
-		}
+		public function FontLoader() { }
 		
 		/**
-		 * @param	fontName "Aqua","Azuki","Cinecaption","Mona","Sazanami","YSHandy","VLGothic","IPAGP","IPAM","UmeUgo","UmePms","Bebas".
+		 * フォントを読み込んで登録します。
+		 * @param	fontName
+		 * ["Aqua","Azuki","Cinecaption","Mona","Sazanami","YSHandy","VLGothic","IPAGP","IPAM","UmeUgo","UmePms","Bebas"]
 		 */
 		public function load(fontName:String):void {
 			_fontName = fontName;

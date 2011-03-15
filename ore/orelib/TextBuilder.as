@@ -1,98 +1,129 @@
 package ore.orelib {
-	import flash.filters.GlowFilter;
+	import flash.geom.Point;
 	import flash.text.AntiAliasType;
+	import flash.text.GridFitType;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
 	import flash.text.TextFormatAlign;
 	
+	/** 複雑な設定の flash.text.TextField クラスの生成を単純化します。 */
 	public class TextBuilder {
-		public static const ALIGN_LEFT:String = "left";
-		public static const ALIGN_RIGHT:String = "right";
-		public static const ALIGN_CENTER:String = "center";
+		public static const LEFT:String = "left";
+		public static const RIGHT:String = "right";
+		public static const CENTER:String = "center";
 		
-		public static var deviceFonts:Boolean = false;
+		private var _align:String;
+		private var _autoSize:Boolean;
+		private var _bold:Boolean;
+		private var _filters:Array;
+		private var _fontName:String;
+		private var _sharpness:Number;
+		private var _thickness:Number;
+		private var _fontColor:uint;
+		private var _fontSize:int;
+		private var _pos:Point;
+		private var _size:Point;
 		
-		private var _posX:Number, _posY:Number, _width:Number, _height:Number;
-		private var _background:Boolean, _backgroundColor:uint, _border:Boolean, _borderColor:uint;
-		private var _fontName:String, _embedFonts:Boolean, _advancedAntiAlias:Boolean;
-		private var _fontSize:int, _fontColor:uint, _bold:Boolean;
-		private var _textBorder:Boolean, _textBorderColor:uint, _textBorderBlur:Number, _textBorderStrength:Number;
-		private var _align:String, _autoSizeEnabled:Boolean, _autoCorrectPositionY:Boolean, _wordWrap:Boolean;
+		public function TextBuilder() {
+			_align = TextBuilder.LEFT;
+			_autoSize = _bold = false;
+			_filters = [];
+			_fontName = null;
+			_sharpness = _thickness = 0;
+			_fontColor = 0x000000;
+			_fontSize = 12;
+			_pos = new Point(0, 0);
+			_size = new Point(100, 100);
+		}
 		
-		public function TextBuilder() {clear();}
-		
-		public function clear():TextBuilder {
-			_posX = 0; _posY = 0; _width = 100; _height = 100;
-			_background = false; _backgroundColor = 0xffffff; _border = false; _borderColor = 0x000000;
-			_fontName = "Arial"; _embedFonts = false; _advancedAntiAlias = false; _fontSize = 12; _fontColor = 0x000000; _bold = false;
-			_textBorder = false; _textBorderColor = 0xffff00; _textBorderBlur = 4; _textBorderStrength = 2;
-			_align = TextBuilder.ALIGN_LEFT; _autoSizeEnabled = false; _autoCorrectPositionY = false; _wordWrap = false;
+		public function align(value:String):TextBuilder {
+			_align = value;
 			return this;
 		}
 		
-		public function position(x:Number, y:Number, isRelative:Boolean = false):TextBuilder { if (isRelative) { _posX += x; _posY += y; } else { _posX = x; _posY = y; } return this; }
-		public function size(width:Number, height:Number):TextBuilder { _width = width; _height = height; return this; }
-		public function background(enabled:Boolean, color:uint = 0xffffff):TextBuilder { _background = enabled; _backgroundColor = color; return this; }
-		public function border(enabled:Boolean, color:uint = 0x000000):TextBuilder { _border = enabled; _borderColor = color; return this; }
-		public function font(name:String, embed:Boolean = false, advancedAntiAlias:Boolean = false):TextBuilder {
-			if (deviceFonts) { return this; }
-			_fontName = name;_embedFonts = embed;_advancedAntiAlias = advancedAntiAlias;return this;
+		public function autoSize(enabled:Boolean = true):TextBuilder {
+			_autoSize = enabled;
+			return this;
 		}
-		public function fontSize(size:int):TextBuilder { _fontSize = size; return this; }
-		public function fontColor(color:uint):TextBuilder { _fontColor = color; return this; }
-		public function bold(enabled:Boolean = true):TextBuilder { _bold = enabled; return this; }
-		public function textBorder(enabled:Boolean, color:uint = 0xffff00, blur:Number = 4, strength:Number = 2):TextBuilder { _textBorder = enabled; _textBorderColor = color; _textBorderBlur = blur; _textBorderStrength = strength; return this; }
-		public function align(value:String = TextBuilder.ALIGN_LEFT):TextBuilder { _align = value; return this; }
-		public function autoSize(enabled:Boolean = true, correctsY:Boolean = true):TextBuilder { _autoSizeEnabled = enabled; _autoCorrectPositionY = correctsY; return this; }
-		public function wordWrap(enabled:Boolean = true):TextBuilder { _wordWrap = enabled; return this; }
+		
+		public function bold(enabled:Boolean = true):TextBuilder {
+			_bold = enabled;
+			return this;
+		}
+		
+		public function filters(value:Array):TextBuilder {
+			_filters = value;
+			return this;
+		}
+		
+		public function font(name:String, sharpness:Number = 0, thickness:Number = 0):TextBuilder {
+			_fontName = name;
+			_sharpness = sharpness;
+			_thickness = thickness;
+			return this;
+		}
+		
+		public function fontColor(value:uint):TextBuilder {
+			_fontColor = value;
+			return this;
+		}
+		
+		public function fontSize(value:int):TextBuilder {
+			_fontSize = value;
+			return this;
+		}
+		
+		public function pos(x:Number, y:Number, relative:Boolean = false):TextBuilder {
+			_pos.x = ((relative) ? _pos.x : 0) + x;
+			_pos.y = ((relative) ? _pos.y : 0) + y;
+			return this;
+		}
+		
+		public function size(width:Number, height:Number):TextBuilder {
+			_size.x = width;
+			_size.y = height;
+			return this;
+		}
 		
 		public function build(text:String):TextField {
-			var textField:TextField = new TextField();
-			
-			textField.x = _posX;
-			textField.y = _posY;
-			textField.width = _width;
-			textField.height = _height;
-			
+			var tf:TextField = new TextField();
 			var format:TextFormat = new TextFormat(_fontName, _fontSize, _fontColor, _bold);
-			if (_autoSizeEnabled) {
+			if (_fontName) {
+				tf.embedFonts = true;
+				tf.antiAliasType = AntiAliasType.ADVANCED;
+				tf.gridFitType = (_align == TextBuilder.LEFT) ? GridFitType.PIXEL : GridFitType.SUBPIXEL;
+				tf.sharpness = _sharpness;
+				tf.thickness = _thickness;
+			}
+			if (_autoSize) {
 				switch(_align) {
-					case TextBuilder.ALIGN_LEFT: { textField.autoSize = TextFieldAutoSize.LEFT; break; }
-					case TextBuilder.ALIGN_RIGHT: { textField.autoSize = TextFieldAutoSize.RIGHT; break; }
-					case TextBuilder.ALIGN_CENTER: { textField.autoSize = TextFieldAutoSize.CENTER; break; }
+					case TextBuilder.LEFT: { tf.autoSize = TextFieldAutoSize.LEFT; break; }
+					case TextBuilder.RIGHT: { tf.autoSize = TextFieldAutoSize.RIGHT; break; }
+					case TextBuilder.CENTER: { tf.autoSize = TextFieldAutoSize.CENTER; break; }
 				}
 			}else {
+				tf.width = _size.x;
+				tf.height = _size.y;
 				switch(_align) {
-					case TextBuilder.ALIGN_LEFT: { format.align = TextFormatAlign.LEFT; break; }
-					case TextBuilder.ALIGN_RIGHT: { format.align = TextFormatAlign.RIGHT; break; }
-					case TextBuilder.ALIGN_CENTER: { format.align = TextFormatAlign.CENTER; break; }
+					case TextBuilder.LEFT: { format.align = TextFormatAlign.LEFT; break; }
+					case TextBuilder.RIGHT: { format.align = TextFormatAlign.RIGHT; break; }
+					case TextBuilder.CENTER: { format.align = TextFormatAlign.CENTER; break; }
 				}
 			}
-			
-			textField.embedFonts = _embedFonts;
-			textField.antiAliasType = (_advancedAntiAlias ? AntiAliasType.ADVANCED : AntiAliasType.NORMAL);
-			textField.defaultTextFormat = format;
-			textField.text = text;
-			
-			if (textField.background = _background) { textField.backgroundColor = _backgroundColor; }
-			if (textField.border = _border) { textField.borderColor = _borderColor; }
-			if (_textBorder) { textField.filters = [new GlowFilter(_textBorderColor, 1, _textBorderBlur, _textBorderBlur, _textBorderStrength)]; }
-			if (!(textField.wordWrap = _wordWrap) && _autoCorrectPositionY) { textField.y += Math.max(0, Math.ceil((_height - (textField.textHeight + 4)) / 2)); }
-			textField.mouseEnabled = textField.selectable = false;
-			
-			return textField;
+			tf.defaultTextFormat = format;
+			tf.text = text;
+			tf.x = _pos.x;
+			tf.y = _pos.y + ((_autoSize) ? Math.max(0, int((_size.y - (tf.textHeight + 4)) / 2)) : 0);
+			tf.filters = _filters.concat();
+			tf.mouseEnabled = tf.selectable = false;
+			return tf;
 		}
 		
 		public function clone():TextBuilder {
-			var clone:TextBuilder = new TextBuilder();
-			clone._posX = _posX; clone._posY = _posY; clone._width = _width; clone._height = _height;
-			clone._background = _background; clone._backgroundColor = _backgroundColor; clone._border = _border; clone._borderColor = _borderColor;
-			clone._fontName = _fontName; clone._embedFonts = _embedFonts; clone._advancedAntiAlias = _advancedAntiAlias;
-			clone._fontSize = _fontSize; clone._fontColor = _fontColor; clone._bold = _bold;
-			clone._textBorder = _textBorder; clone._textBorderColor = _textBorderColor; clone._textBorderBlur = _textBorderBlur; clone._textBorderStrength = _textBorderStrength;
-			clone._align = _align; clone._autoSizeEnabled = _autoSizeEnabled; clone._autoCorrectPositionY = _autoCorrectPositionY; clone._wordWrap = _wordWrap;
-			return clone;
+			return new TextBuilder().align(_align).autoSize(_autoSize).bold(_bold).filters(_filters)
+			.font(_fontName, _sharpness, _thickness).fontColor(_fontColor).fontSize(_fontSize)
+			.pos(_pos.x, _pos.y).size(_size.x, _size.y);
 		}
 	}
 }

@@ -7,7 +7,8 @@ package ore.orelib {
 	import flash.net.URLRequest;
 	import flash.system.LoaderContext;
 	
-	[Event(name="complete", type="flash.events.Event")]
+	[Event(name = "complete", type = "flash.events.Event")]
+	/** 外部画像を、アクセス可能な flash.display.BitmapData クラスとしてロードする際に使用します。 */
 	public class ExternalImageLoader extends EventDispatcher {
 		private var _usesHack:Boolean;
 		private var _bitmapData:BitmapData;
