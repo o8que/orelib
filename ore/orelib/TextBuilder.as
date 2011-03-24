@@ -22,7 +22,7 @@ package ore.orelib {
 		private var _thickness:Number;
 		private var _fontColor:uint;
 		private var _fontSize:int;
-		private var _pos:Point;
+		private var _position:Point;
 		private var _size:Point;
 		
 		public function TextBuilder() {
@@ -33,7 +33,7 @@ package ore.orelib {
 			_sharpness = _thickness = 0;
 			_fontColor = 0x000000;
 			_fontSize = 12;
-			_pos = new Point(0, 0);
+			_position = new Point(0, 0);
 			_size = new Point(100, 100);
 		}
 		
@@ -75,8 +75,8 @@ package ore.orelib {
 		}
 		
 		public function pos(x:Number, y:Number, relative:Boolean = false):TextBuilder {
-			_pos.x = ((relative) ? _pos.x : 0) + x;
-			_pos.y = ((relative) ? _pos.y : 0) + y;
+			_position.x = ((relative) ? _position.x : 0) + x;
+			_position.y = ((relative) ? _position.y : 0) + y;
 			return this;
 		}
 		
@@ -96,6 +96,10 @@ package ore.orelib {
 				tf.sharpness = _sharpness;
 				tf.thickness = _thickness;
 			}
+			
+			tf.x = _position.x;
+			tf.width = _size.x;
+			tf.height = _size.y;
 			if (_autoSize) {
 				switch(_align) {
 					case TextBuilder.LEFT: { tf.autoSize = TextFieldAutoSize.LEFT; break; }
@@ -103,27 +107,26 @@ package ore.orelib {
 					case TextBuilder.CENTER: { tf.autoSize = TextFieldAutoSize.CENTER; break; }
 				}
 			}else {
-				tf.width = _size.x;
-				tf.height = _size.y;
 				switch(_align) {
 					case TextBuilder.LEFT: { format.align = TextFormatAlign.LEFT; break; }
 					case TextBuilder.RIGHT: { format.align = TextFormatAlign.RIGHT; break; }
 					case TextBuilder.CENTER: { format.align = TextFormatAlign.CENTER; break; }
 				}
 			}
+			
 			tf.defaultTextFormat = format;
 			tf.text = text;
-			tf.x = _pos.x;
-			tf.y = _pos.y + ((_autoSize) ? Math.max(0, int((_size.y - (tf.textHeight + 4)) / 2)) : 0);
+			tf.y = _position.y + ((_autoSize) ? Math.max(0, int((_size.y - (tf.textHeight + 4)) / 2)) : 0);
 			tf.filters = _filters.concat();
 			tf.mouseEnabled = tf.selectable = false;
+			
 			return tf;
 		}
 		
 		public function clone():TextBuilder {
 			return new TextBuilder().align(_align).autoSize(_autoSize).bold(_bold).filters(_filters)
 			.font(_fontName, _sharpness, _thickness).fontColor(_fontColor).fontSize(_fontSize)
-			.pos(_pos.x, _pos.y).size(_size.x, _size.y);
+			.pos(_position.x, _position.y).size(_size.x, _size.y);
 		}
 	}
 }

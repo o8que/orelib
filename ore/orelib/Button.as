@@ -1,5 +1,59 @@
 package ore.orelib {
 	import flash.display.DisplayObject;
+	import flash.display.DisplayObjectContainer;
+	import flash.display.GradientType;
+	import flash.display.Shape;
+	import flash.display.Sprite;
+	import flash.geom.Matrix;
+	
+	public class Button extends Sprite {
+		private var _base:Sprite;
+		private var _faceContainer:Sprite;
+		private var _face:DisplayObject;
+		
+		private var _pressed:Boolean;
+		private var _enabled:Boolean;
+		private var _selected:Boolean;
+		
+		public static function createFrom(x:int, y:int, width:int, height:int, face:DisplayObject):Button {
+			var button:Button = new Button(width, height);
+			button.x = x;
+			button.y = y;
+			button.face = face;
+			return button;
+		}
+		
+		public function Button(width:int, height:int) {
+			addChild(_base = new Sprite());
+			_base.addChild(_faceContainer = createFaceContainer(1, 1, width - 2, height - 2));
+			_faceContainer.addChild(_face = new Shape());
+			
+			_pressed = false;
+			_enabled = true;
+			_selected = false;
+		}
+		
+		private function createFaceContainer(x:int, y:int, width:int, height:int):Sprite {
+			var sp:Sprite = new Sprite();
+			sp.x = x;
+			sp.y = y;
+			var matrix:Matrix = new Matrix();
+			matrix.createGradientBox(width, height, Math.PI / 2);
+			sp.graphics.beginGradientFill(GradientType.LINEAR, [0xFFFFFF, 0xE0E0E0], [1, 1], [0, 255], matrix);
+			sp.graphics.drawRect(0, 0, width, height);
+			sp.graphics.endFill();
+			return sp;
+		}
+		
+		public function set face(value:DisplayObject):void {
+			_faceContainer.removeChild(_face);
+			_faceContainer.addChild(_face = value);
+		}
+	}
+}
+/*
+package ore.orelib {
+	import flash.display.DisplayObject;
 	import flash.display.GradientType;
 	import flash.display.Shape;
 	import flash.display.Sprite;
@@ -16,7 +70,6 @@ package ore.orelib {
 		private var _faceContainer:Sprite;
 		private var _face:DisplayObject;
 		private var _facePosition:Point;
-		private var _hovered:Boolean;
 		private var _pressed:Boolean;
 		
 		private var _selected:Boolean;
@@ -29,7 +82,7 @@ package ore.orelib {
 			addChild(_faceContainer = new Sprite());
 			_faceContainer.addChild(_face = new Shape());
 			_facePosition = new Point(0, 0);
-			_hovered = _pressed = false;
+			_pressed = false;
 			
 			var matrix:Matrix = new Matrix();
 			matrix.createGradientBox(_size.x - 2, _size.y - 2, Math.PI / 2, 1, 1);
@@ -41,20 +94,7 @@ package ore.orelib {
 			enabled = true;
 			
 			mouseChildren = false;
-			addEventListener(MouseEvent.ROLL_OVER, rollOverHandler);
 			addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
-		}
-		
-		private function rollOverHandler(event:MouseEvent):void {
-			_hovered = true;
-			draw();
-			addEventListener(MouseEvent.ROLL_OUT, rollOutHandler);
-		}
-		
-		private function rollOutHandler(event:MouseEvent):void {
-			removeEventListener(MouseEvent.ROLL_OUT, rollOutHandler);
-			_hovered = false;
-			draw();
 		}
 		
 		private function mouseDownHandler(event:MouseEvent):void {
@@ -71,7 +111,6 @@ package ore.orelib {
 		
 		private static const DOWN:Array = [new DropShadowFilter(1, 45, 0x404040, 0.5, 1, 1, 1, 1, true)];
 		private static const UP:Array = [];
-		private static const HOVER:ColorTransform = new ColorTransform(0.5, 0.5, 0.5, 1, 128, 128, 128);
 		private static const NORMAL:ColorTransform = new ColorTransform(1, 1, 1);
 		private static const DISABLED:ColorTransform = new ColorTransform(0.7, 0.7, 0.7);
 		
@@ -86,7 +125,7 @@ package ore.orelib {
 			_face.x = _facePosition.x + int(_pressed);
 			_face.y = _facePosition.y + int(_pressed);
 			
-			transform.colorTransform = (_enabled) ? ((_hovered) ? HOVER : NORMAL) : DISABLED;
+			transform.colorTransform = (_enabled) ? NORMAL : DISABLED;
 		}
 		
 		public function setFace(face:DisplayObject):void {
@@ -110,3 +149,4 @@ package ore.orelib {
 		}
 	}
 }
+*/
