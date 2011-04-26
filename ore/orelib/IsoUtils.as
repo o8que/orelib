@@ -1,4 +1,4 @@
-package {
+package ore.orelib {
 	import flash.geom.Point;
 	import flash.geom.Vector3D;
 	
